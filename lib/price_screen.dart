@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:javango_lib/dart.dart';
 import 'dart:io' show Platform;
 
+import 'coin_card.dart';
 import 'coin_data.dart';
 
 class PriceScreen extends StatefulWidget {
@@ -11,39 +12,42 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  String currency = 'USD';
-  double price;
+  Currency currency = Currency.USD;
+  Map<Coin, double> prices = {};
+  bool isWating = true;
 
   void initState() {
     super.initState();
-    getPrice(currency, 'BTC');
+    getPrice();
   }
 
-  void getPrice(String currency, String coin) async {
-    double p = await CoinData.getPrice(currency, coin);
-    setState(() {
-      this.currency = currency;
-      price = p;
-    });
+  void getPrice() async {
+    isWating = true;
+    prices = await CoinData.getPrices(currency);
+    isWating = false;
+    setState(() {});
   }
 
   DropdownButton getButton() {
-    List<DropdownMenuItem<String>> list = [];
+    List<DropdownMenuItem<Currency>> list = [];
     for (Currency c in Currency.values) {
       String name = enumName(c);
       list.add(
         DropdownMenuItem(
           child: Text(name),
-          value: name,
+          value: c,
         ),
       );
     }
 
-    return DropdownButton<String>(
+    return DropdownButton<Currency>(
       value: currency,
       items: list,
-      onChanged: (value) async {
-        getPrice(value, 'BTC');
+      onChanged: (Currency c) {
+        setState(() {
+          currency = c;
+        });
+        getPrice();
       },
     );
   }
@@ -65,10 +69,6 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
-  String format(String coin, String currency, double price) {
-    return '1 $coin = ${price == null ? '...' : '$price'} $currency';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,26 +79,13 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  format('BTC', currency, price),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              CoinCard(Coin.BTC, currency, prices[Coin.BTC], isWating),
+              CoinCard(Coin.ETH, currency, prices[Coin.ETH], isWating),
+              CoinCard(Coin.LTC, currency, prices[Coin.LTC], isWating),
+            ],
           ),
           Container(
             height: 150.0,

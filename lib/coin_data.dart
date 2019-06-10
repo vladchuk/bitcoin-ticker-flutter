@@ -34,12 +34,20 @@ enum Coin {
 const String baseUrl = 'https://apiv2.bitcoinaverage.com/indices/global/ticker/';
 
 class CoinData {
-  static Future<double> getPrice(String currency, String coin) async {
-    String url = baseUrl + coin + currency;
+  static Future<double> getPrice(Currency currency, Coin coin) async {
+    String url = baseUrl + javango.enumName(coin) + javango.enumName(currency);
     javango.HttpResponse res = await javango.getHttpData(url);
     if (!res.success) print('url=$url, error=${res.error}');
     javango.JsonResponse jsonRes = javango.parseJson(res.data);
     double price = jsonRes.data['last'];
     return price;
+  }
+
+  static Future<Map<Coin, double>> getPrices(Currency currency) async {
+    Map<Coin, double> map = {};
+    for (Coin coin in Coin.values) {
+      map[coin] = await CoinData.getPrice(currency, coin);
+    }
+    return map;
   }
 }
