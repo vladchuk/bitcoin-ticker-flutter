@@ -1,10 +1,12 @@
+import 'package:bitcoin_ticker/ticker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:javango_lib/dart.dart';
 import 'dart:io' show Platform;
 
-import 'coin_card.dart';
-import 'coin_data.dart';
+import 'package:bitcoin_ticker/coin_card.dart';
+import 'package:bitcoin_ticker/coin_data.dart';
+import 'package:provider/provider.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -12,61 +14,18 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  Currency currency = Currency.USD;
-  Map<Coin, double> prices = {};
-  bool isWating = true;
-
+  @override
   void initState() {
     super.initState();
-    getPrice();
   }
 
-  void getPrice() async {
-    isWating = true;
-    prices = await CoinData.getPrices(currency);
-    isWating = false;
-    setState(() {});
-  }
-
-  DropdownButton getButton() {
-    List<DropdownMenuItem<Currency>> list = [];
-    for (Currency c in Currency.values) {
-      String name = enumName(c);
-      list.add(
-        DropdownMenuItem(
-          child: Text(name),
-          value: c,
-        ),
-      );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final Ticker ticker = Provider.of<Ticker>(context);
+    if (!ticker.initialized) {
+      ticker.updatePrices();
     }
-
-    return DropdownButton<Currency>(
-      value: currency,
-      items: list,
-      onChanged: (Currency c) {
-        setState(() {
-          currency = c;
-        });
-        getPrice();
-      },
-    );
-  }
-
-  CupertinoPicker getPicker() {
-    List<Text> list = [];
-    for (Currency c in Currency.values) {
-      list.add(
-        Text(c.toString()),
-      );
-    }
-    return CupertinoPicker(
-      backgroundColor: Colors.lightBlue,
-      itemExtent: 32,
-      onSelectedItemChanged: (index) {
-        print(index);
-      },
-      children: list,
-    );
   }
 
   @override
@@ -82,9 +41,9 @@ class _PriceScreenState extends State<PriceScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              CoinCard(Coin.BTC, currency, prices[Coin.BTC], isWating),
-              CoinCard(Coin.ETH, currency, prices[Coin.ETH], isWating),
-              CoinCard(Coin.LTC, currency, prices[Coin.LTC], isWating),
+              CoinCard(Coin.BTC),
+              CoinCard(Coin.ETH),
+              CoinCard(Coin.LTC),
             ],
           ),
           Container(
@@ -92,10 +51,39 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: Platform.isIOS ? getPicker() : getButton(),
+            child: CurrencyButton(), //Platform.isIOS ? getPicker() : getButton(price),
           ),
         ],
       ),
+    );
+  }
+}
+
+class CurrencyButton extends StatelessWidget {
+  final List<DropdownMenuItem<Currency>> list = [];
+
+  CurrencyButton() {
+    for (Currency c in Currency.values) {
+      String name = enumName(c);
+      list.add(
+        DropdownMenuItem(
+          child: Text(name),
+          value: c,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ticker = Provider.of<Ticker>(context);
+    return DropdownButton<Currency>(
+      value: ticker.currency,
+      items: list,
+      onChanged: (Currency c) {
+        ticker.currency = c;
+        ticker.updatePrices();
+      },
     );
   }
 }

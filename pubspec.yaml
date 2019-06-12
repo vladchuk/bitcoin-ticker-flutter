@@ -9,6 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  provider: ^3.0.0
   cupertino_icons: ^0.1.2
   javango_lib:
     path: ../javango_lib

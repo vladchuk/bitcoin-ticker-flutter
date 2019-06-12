@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:javango_lib/dart.dart';
-
-import 'coin_data.dart';
+import 'package:provider/provider.dart';
+import 'package:bitcoin_ticker/coin_data.dart';
+import 'package:bitcoin_ticker/ticker.dart';
 
 class CoinCard extends StatelessWidget {
   final Coin coin;
-  final Currency currency;
-  final double price;
-  final bool isWaiting;
 
-  CoinCard(this.coin, this.currency, this.price, this.isWaiting);
+  CoinCard(this.coin);
 
   @override
   Widget build(BuildContext context) {
+    final ticker = Provider.of<Ticker>(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0.0),
       child: Card(
@@ -24,7 +23,7 @@ class CoinCard extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
           child: Text(
-            format(coin, currency, price),
+            format(ticker),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 20.0,
@@ -36,10 +35,10 @@ class CoinCard extends StatelessWidget {
     );
   }
 
-  String format(Coin coin, Currency currency, double price) {
+  String format(Ticker ticker) {
     String c = enumName(coin);
-    String cr = enumName(currency);
-    String pr = isWaiting ? '...' : price.toStringAsFixed(2);
+    String cr = ticker.waiting ? '' : enumName(ticker.currency);
+    String pr = ticker.waiting ? '...' : ticker.prices[coin].toStringAsFixed(2);
     return '1 $c = $pr $cr';
   }
 }
