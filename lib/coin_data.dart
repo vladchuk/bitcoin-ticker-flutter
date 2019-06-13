@@ -1,28 +1,16 @@
+import 'dart:io';
+
 import 'package:javango_lib/dart.dart' as javango;
 
 enum Currency {
   AUD,
-  BRL,
   CAD,
-  CNY,
   EUR,
   GBP,
   HKD,
-  IDR,
-  ILS,
-  INR,
-  JPY,
-  MXN,
-  NOK,
-  NZD,
-  PLN,
-  RON,
   RUB,
-  SEK,
-  SGD,
   UAH,
   USD,
-  ZAR
 }
 
 enum Coin {

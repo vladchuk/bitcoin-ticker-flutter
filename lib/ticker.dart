@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'coin_data.dart';
@@ -6,6 +8,7 @@ class Ticker with ChangeNotifier {
   Currency _currency = Currency.UAH;
   Map<Coin, double> _prices = {};
   bool _waiting;
+  Timer _timer;
 
   bool get initialized => _prices.isNotEmpty;
 
@@ -13,6 +16,8 @@ class Ticker with ChangeNotifier {
 
   set currency(Currency value) {
     _currency = value;
+    if (_timer != null) _timer.cancel();
+    _prices.clear();
     notifyListeners();
   }
 
@@ -22,9 +27,9 @@ class Ticker with ChangeNotifier {
 
   void updatePrices() async {
     update();
-//    while (true) {
-//      Future.delayed(Duration(seconds: 10), update);
-//    }
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+      update();
+    });
   }
 
   void update() async {
@@ -32,7 +37,7 @@ class Ticker with ChangeNotifier {
     print('Getting prices.............');
     _prices = await CoinData.getPrices(_currency);
     print('Got prices!!!!!!!!!!!!!!!');
-    notifyListeners();
     _waiting = false;
+    notifyListeners();
   }
 }
